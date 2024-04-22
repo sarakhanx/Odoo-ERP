@@ -1,3 +1,3 @@
-# Automate Sciprt for Odoo
+# Automate Script for Odoo
 
-Automation for manage the Odoo.
+Automation for managing the Odoo.

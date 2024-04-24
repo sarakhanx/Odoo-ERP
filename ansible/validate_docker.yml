@@ -1,0 +1,33 @@
+---
+- name: Validate Docker and Docker Compose Installation on AlmaLinux 8
+  hosts: odoo-server
+  become: yes
+  tasks:
+    - name: Check if Docker is installed
+      command: docker --version
+      register: docker_version
+      failed_when: "'Docker version' not in docker_version.stdout"
+
+    - name: Display Docker version
+      debug:
+        msg: "Docker version on the system is {{ docker_version.stdout }}"
+
+    - name: Check if Docker service is running
+      systemd:
+        state: started
+        enabled: yes
+        name: docker
+      register: docker_service
+
+    - name: Display Docker service status
+      debug:
+        msg: "Docker service is running and enabled"
+
+    - name: Check if Docker Compose is installed
+      command: docker-compose --version
+      register: docker_compose_version
+      failed_when: "'docker-compose version' not in docker_compose_version.stdout"
+
+    - name: Display Docker Compose version
+      debug:
+        msg: "Docker Compose version on the system is {{ docker_compose_version.stdout }}"

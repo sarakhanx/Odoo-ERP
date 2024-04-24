@@ -1,0 +1,30 @@
+---
+- name: Deploy Nginx configuration and reload Nginx
+  hosts: odoo-server
+  become: true
+  tasks:
+    - name: Check if Nginx is installed
+      ansible.builtin.command:
+        cmd: nginx -v
+      register: nginx_installed
+      ignore_errors: true
+      changed_when: nginx_installed.rc != 0
+
+    - name: Install Nginx
+      ansible.builtin.dnf:
+        name: nginx
+        state: present
+      when: nginx_installed.rc != 0
+
+    - name: Copy Nginx configuration file to server
+      ansible.builtin.copy:
+        src: ./odoo_prod/odoo/nginx/odoo-nginx.conf
+        dest: /etc/nginx/conf.d/odoo-nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload Nginx configuration
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded

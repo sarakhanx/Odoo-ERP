@@ -1,0 +1,34 @@
+---
+- name: Setup PostgreSQL and create a user on Ubuntu servers
+  hosts: odoo-server
+  become: yes  # Necessary for installing packages and managing PostgreSQL
+  vars:
+    db_user: "odoo"
+    db_password: "thisissupoer^secret0"
+
+  pre_tasks:
+    - name: Install psycopg2-binary on the control machine
+      ansible.builtin.pip:
+        name: psycopg2-binary
+        state: present
+      delegate_to: localhost
+      run_once: true
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600  # Cache valid for 1 hour to avoid repetitive cache updates
+
+    - name: Install PostgreSQL python libraries on the managed host
+      ansible.builtin.apt:
+        name: python3-psycopg2
+        state: present
+
+    - name: Create a PostgreSQL user
+      community.general.postgresql_user:
+        db: postgres
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        role_attr_flags: CREATEDB,NOREPLICATION
+        state: present

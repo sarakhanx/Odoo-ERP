@@ -1,0 +1,38 @@
+---
+- name: Install and Start PostgreSQL using Docker Compose
+  hosts: odoo-server
+  become: yes  # Required for permissions
+  vars:
+    odoo_prod_path: odoo_prod
+  tasks:
+    - name: Copy docker-compose.yml Of PostgreSQL to remote server
+      ansible.builtin.copy:
+        src: ./odoo_prod/pg/docker-compose.yml
+        dest: /home/odoo/odoo_prod/pg/docker-compose.yml
+        owner: odoo
+        group: odoo
+        # mode: '0644'
+
+    - name: Copy PostgreSQL service file to remote server
+      ansible.builtin.copy:
+        src: ./odoo_prod/pg/postgresql-docker.service
+        dest: /etc/systemd/system/postgresql-docker.service
+        owner: odoo
+        group: odoo
+        # mode: '0755'
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable postgresql-docker.service
+      systemd:
+        name: postgresql-docker.service
+        enabled: yes
+
+    - name: Start postgresql-docker.service
+      systemd:
+        name: postgresql-docker.service
+        state: started
+
+

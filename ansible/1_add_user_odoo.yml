@@ -1,0 +1,82 @@
+---
+- name: Add user 'odoo' with sudo permissions and SSH key on AlmaLinux
+  hosts: odoo-server
+  remote_user: root
+  vars:
+    user_name: odoo
+    ssh_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMeEBJeRaD1hp+Lb0aZDDjkcUGQ6UD+zdM9/7L7Ecu/G"
+
+  tasks:
+    - name: Upgrade almalinux-release package
+      ansible.builtin.dnf:
+        name: almalinux-release
+        state: latest
+
+    - name: Ensure group 'odoo' exists
+      ansible.builtin.group:
+        name: "{{ user_name }}"
+        state: present
+
+    - name: Create user 'odoo'
+      ansible.builtin.user:
+        name: "{{ user_name }}"
+        group: "{{ user_name }}"
+        create_home: true
+        shell: /bin/bash
+
+    - name: Add 'odoo' user to sudoers
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/odoo
+        line: 'odoo ALL=(ALL) NOPASSWD: ALL'
+        owner: root
+        group: root
+        mode: '0440'
+        state: present
+        create: true
+        validate: 'visudo -cf %s'
+
+    - name: Ensure .ssh directory exists for 'odoo'
+      ansible.builtin.file:
+        path: "/home/{{ user_name }}/.ssh"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0700'
+
+    - name: Add public SSH key to authorized_keys
+      ansible.builtin.copy:
+        dest: "/home/{{ user_name }}/.ssh/authorized_keys"
+        content: "{{ ssh_public_key }}"
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0600'
+
+    - name: Ensure odoo_prod/pg directory exists
+      ansible.builtin.file:
+        path: "/home/{{ user_name }}/odoo_prod/pg"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0700'
+    - name: Ensure pgdata directory exists
+      ansible.builtin.file:
+        path: "/home/{{ user_name }}/odoo_prod/pg/pgdata"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0744'
+
+    - name: Ensure odoo-web-data directory exists
+      ansible.builtin.file:
+        path: "/home/{{ user_name }}/odoo_prod/odoo/odoo-web-data"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0766'
+    - name: Ensure odoo-web-data directory exists
+      ansible.builtin.file:
+        path: "/home/{{ user_name }}/odoo_prod/odoo/odoo-custom-addons"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0766'

@@ -1,0 +1,23 @@
+- name: Install and Start PostgreSQL using Docker Compose
+  hosts: odoo-server
+  become: yes  # Required for permissions
+  vars:
+    odoo_prod_path: odoo_prod
+  tasks:
+    
+
+    - name: Create a directory for Odoo
+      ansible.builtin.file:
+        path: /home/odoo/odoo/{odoo_prod_path}
+        state: directory
+        owner: odoo
+        group: odoo
+        mode: '0755'
+
+    - name: Copy Docker Compose file to target directory
+      ansible.builtin.copy:
+        src: /local/path/to/docker-compose.yml
+        dest: /home/odoo/odoo/docker-compose.yml
+        owner: odoo
+        group: odoo
+        mode: '0644'

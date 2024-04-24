@@ -1,0 +1,35 @@
+---
+- name: Copy and Run Odoo Docker Compose
+  hosts: odoo-server
+  remote_user: odoo
+  become: true
+  tasks:
+    - name: Copy docker-compose.yml Of Odoo to remote server
+      ansible.builtin.copy:
+        src: ./odoo_prod/odoo/docker-compose.yml
+        dest: /home/odoo/odoo_prod/odoo/docker-compose.yml
+        owner: odoo
+        group: odoo
+        # mode: '0644'
+
+    - name: Copy odoo-docker.service file to remote server
+      ansible.builtin.copy:
+        src: ./odoo_prod/odoo/odoo-docker.service
+        dest: /etc/systemd/system/odoo-docker.service
+        owner: odoo
+        group: odoo
+        mode: '0755'
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable odoo-docker.service
+      systemd:
+        name: odoo-docker.service
+        enabled: yes
+
+    - name: Start odoo-docker.service
+      systemd:
+        name: odoo-docker.service
+        state: started

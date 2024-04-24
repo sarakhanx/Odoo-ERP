@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  odoo:
+    image: odoo:17
+    container_name: odoo_odoo17
+    restart: always
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    volumes:
+      - /home/odoo/odoo_prod/odoo/odoo-web-data:/var/lib/odoo
+      - /home/odoo/odoo_prod/odoo/odoo-custom-addons:/mnt/extra-addons
+    environment:
+      - HOST=odoo_pg16
+      - USER=odoo
+      - PASSWORD=EIZEVcCQwlNmVeg
+    # command: -- -i base -d odoo -u all
+    networks:
+      - odoo-network
+
+networks:
+  odoo-network:
+    external: true

@@ -1,0 +1,35 @@
+---
+- name: Validate Docker Installation
+  hosts: all
+  become: yes  # Use sudo for all operations
+  tasks:
+    - name: Check if Docker is installed
+      command: docker --version
+      register: docker_version
+      ignore_errors: true
+
+    - name: Display Docker version
+      debug:
+        msg: "Docker version is: {{ docker_version.stdout }}"
+      when: docker_version.rc == 0
+
+    - name: Fail if Docker is not installed
+      fail:
+        msg: "Docker is not installed."
+      when: docker_version.rc != 0
+
+    - name: Check if Docker service is running
+      systemd:
+        name: docker
+        state: started
+      register: docker_service
+
+    - name: Display Docker service status
+      debug:
+        msg: "Docker service is running."
+      when: docker_service.status.ActiveState == 'active'
+
+    - name: Fail if Docker service is not active
+      fail:
+        msg: "Docker service is not active or not found."
+      when: docker_service.status.ActiveState != 'active'
